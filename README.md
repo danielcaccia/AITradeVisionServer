@@ -15,7 +15,7 @@ This is a **Sentiment Analysis** for **financial texts**, based on the **FinBERT
    pip install -r requirements.txt
 ```
 
-3️⃣ 2️⃣ **Start the Server**:
+3️⃣ **Start the Server**:
    ```bash
    ./run.sh
 ```
