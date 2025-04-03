@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
-from model.sentiment_analyzer import SentimentAnalyzer
+from app.model.sentiment_analyzer import SentimentAnalyzer
+from app.finance.stock_quote import StockQuote
 
 app = Flask(__name__)
 analyzer = SentimentAnalyzer()
+stock_quote = StockQuote()
 
 @app.route("/", methods=["GET"])
 def home():
@@ -19,6 +21,22 @@ def analyze_sentiment():
 
         sentiment = analyzer.analyze(text)
         return jsonify({"sentiment": sentiment})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/quote", methods=["GET"])
+def get_stock_quote():
+    try:
+        symbol = request.args.get("symbol", "")
+        if not symbol:
+            return jsonify({"error": "Stock symbol is required."}), 400
+
+        result = stock_quote.get_quote(symbol)  # ✅ Ensure method exists
+        if "error" in result:
+            return jsonify(result), 404
+        
+        return jsonify(result)
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
