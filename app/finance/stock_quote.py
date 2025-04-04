@@ -26,3 +26,29 @@ class StockQuote:
 
         except Exception as e:
             return {"error": str(e)}
+
+    def get_history(self, symbol, period="6mo"):
+        try:
+            symbol = symbol.upper()
+            stock = yf.Ticker(symbol)
+            data = stock.history(period=period)
+
+            if data.empty:
+                return {"error": "Invalid stock symbol or no data available."}
+
+            history = [
+                {
+                    "date": str(index.date()),
+                    "open": row["Open"],
+                    "high": row["High"],
+                    "low": row["Low"],
+                    "close": row["Close"],
+                    "volume": row["Volume"],
+                }
+                for index, row in data.iterrows()
+            ]
+
+            return {"symbol": symbol, "history": history}
+
+        except Exception as e:
+            return {"error": str(e)}

@@ -17,7 +17,7 @@ def analyze_sentiment():
         text = data.get("text", "")
 
         if not text:
-            return jsonify({"error": "Missing text/Text not provided."}), 400
+            return jsonify({"error": "Text is required."}), 400
 
         sentiment = analyzer.analyze(text)
         return jsonify({"sentiment": sentiment})
@@ -32,7 +32,7 @@ def get_stock_quote():
         if not symbol:
             return jsonify({"error": "Stock symbol is required."}), 400
 
-        result = stock_quote.get_quote(symbol)  # ✅ Ensure method exists
+        result = stock_quote.get_quote(symbol)
         if "error" in result:
             return jsonify(result), 404
         
@@ -40,6 +40,15 @@ def get_stock_quote():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/stock-history", methods=["GET"])
+def stock_history():
+    symbol = request.args.get("symbol")
+    if not symbol:
+        return jsonify({"error": "Stock symbol is required"}), 400
+
+    result = stock_quote.get_history(symbol)
+    return jsonify(result)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)
