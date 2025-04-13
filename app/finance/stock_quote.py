@@ -75,7 +75,6 @@ class StockQuote:
 
             return {
                 "symbol": symbol,
-                "display_name": display_name,
                 "open": quote["open"],
                 "day_high": quote["day_high"],
                 "day_low": quote["day_low"],
