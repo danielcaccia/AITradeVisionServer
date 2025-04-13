@@ -6,10 +6,13 @@ app = Flask(__name__)
 analyzer = SentimentAnalyzer()
 stock_quote = StockQuote()
 
+
 @app.route("/", methods=["GET"])
 def home():
     return "FinBERT Sentiment Analysis API is running!"
 
+
+# SENTIMENT ANALYZER
 @app.route("/analyze", methods=["POST"])
 def analyze_sentiment():
     try:
@@ -25,6 +28,8 @@ def analyze_sentiment():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+# YFINANCE
 @app.route("/quote", methods=["GET"])
 def get_stock_quote():
     try:
@@ -49,6 +54,23 @@ def stock_history():
 
     result = stock_quote.get_history(symbol)
     return jsonify(result)
+
+@app.route("/index-quote", methods=["GET"])
+def get_index_quote():
+    try:
+        symbol = request.args.get("symbol", "")
+        if not symbol:
+            return jsonify({"error": "Stock symbol is required."}), 400
+
+        result = stock_quote.get_index(symbol)
+        if "error" in result:
+            return jsonify(result), 404
+        
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)

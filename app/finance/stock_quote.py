@@ -8,22 +8,23 @@ class StockQuote:
         try:
             symbol = symbol.upper()
             stock = yf.Ticker(symbol)
-            data = stock.history(period="1d")
+            quote = stock.fast_info
             display_name = stock.info.get("displayName")
 
-            if data.empty:
+            if not quote:
                 return {"error": "Invalid stock symbol or no data available."}
 
-            latest_quote = data.iloc[-1]
+            variation = ((quote["last_price"] - quote["open"]) / quote["open"]) * 100
+
             return {
                 "symbol": symbol,
                 "display_name": display_name,
-                "date": str(latest_quote.name.date()),
-                "open": latest_quote["Open"],
-                "high": latest_quote["High"],
-                "low": latest_quote["Low"],
-                "close": latest_quote["Close"],
-                "volume": latest_quote["Volume"]
+                "open": quote["open"],
+                "day_high": quote["day_high"],
+                "day_low": quote["day_low"],
+                "latest_price": quote["last_price"],
+                "latest_volume": quote["last_volume"],
+                "variation": variation
             }
 
         except Exception as e:
@@ -55,6 +56,32 @@ class StockQuote:
                 "symbol": symbol,
                 "display_name": display_name,
                 "history": history
+            }
+
+        except Exception as e:
+            return {"error": str(e)}
+        
+    def get_index(self, symbol):
+        try:
+            symbol = symbol.upper()
+            stock = yf.Ticker(symbol)
+            quote = stock.fast_info
+            display_name = stock.info.get("shortName")
+
+            if not quote:
+                return {"error": "Invalid stock symbol or no data available."}
+            
+            variation = ((quote["last_price"] - quote["open"]) / quote["open"]) * 100
+
+            return {
+                "symbol": symbol,
+                "display_name": display_name,
+                "open": quote["open"],
+                "day_high": quote["day_high"],
+                "day_low": quote["day_low"],
+                "latest_price": quote["last_price"],
+                "latest_volume": quote["last_volume"],
+                "variation": variation
             }
 
         except Exception as e:
