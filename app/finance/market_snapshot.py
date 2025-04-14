@@ -12,10 +12,14 @@ market_cache = {
 
 def update_market_data():
     print("Updating market data...")
+    print("============================================")
 
     data = []
     
     for symbol in TICKERS:
+        print(f"Fetching symbol: {symbol}")
+        print("--------------------------------------------")
+
         try:
             # Fetch data
             ticker = yf.Ticker(symbol)
@@ -24,6 +28,8 @@ def update_market_data():
 
             # Empty check
             if not fast_info or hist.empty:
+                print(f"'fast_info'/'hist' not available. Move on...")
+                print("--------------------------------------------")
                 continue
 
             # Fetch name
@@ -53,8 +59,11 @@ def update_market_data():
                 "avg_volume": avg_volume
             })
 
+            print(f"Symbol successfully obtained: {symbol}")
+            print("--------------------------------------------")
+
         except Exception as e:
-            print(f"Erro com {symbol}: {e}")
+            print(f"Error fetching symbol: {symbol}: {e}")
     
     # Order data
     sorted_by_variation = sorted(data, key=lambda x: x["variation"], reverse=True)
@@ -65,6 +74,7 @@ def update_market_data():
     market_cache["losers"] = sorted_by_variation[-5:]
     market_cache["trending"] = sorted_by_volume_spike[:5]
 
+    print("============================================")
     print("Market data updated.")
 
 def start_market_snapshot_scheduler():
@@ -72,4 +82,4 @@ def start_market_snapshot_scheduler():
     scheduler.add_job(update_market_data, "interval", hours=1)
     scheduler.start()
 
-    threading.Thread(target=update_market_data).start()
+    update_market_data()

@@ -1,61 +1,67 @@
 TICKERS = [
     # Big Tech
-    "AAPL", "MSFT", "GOOGL", "GOOG", "AMZN", "META", "NVDA", "TSLA", "NFLX", "INTC",
-    
+    "AAPL", "MSFT", "GOOGL", "GOOG", "AMZN", "META", "NVDA", "INTC", "AMD",
+    "QCOM", "AVGO", "CSCO", "ADBE", "CRM", "ORCL", "IBM", "TXN", "MU", "AMAT",
+
     # Finances
     "JPM", "BAC", "WFC", "C", "GS", "MS", "USB", "SCHW", "BK", "AXP",
-    
+    "BLK", "COF", "TFC", "PNC", "ALLY", "AIG", "PRU", "TRV", "ALL", "BRK-B",
+
     # Energy
-    "XOM", "CVX", "COP", "EOG", "PSX", "MPC", "SLB", "VLO", "KMI", "OXY",
-    
-    # Consume
-    "WMT", "HD", "COST", "TGT", "LOW", "NKE", "SBUX", "MCD", "PG", "KO", "PEP",
-    
-    # Health
-    "JNJ", "PFE", "MRK", "ABT", "TMO", "BMY", "LLY", "AMGN", "CVS", "UNH",
+    "XOM", "CVX", "COP", "EOG", "SLB", "MPC", "PSX", "VLO", "KMI", "OXY",
+    "HES", "HAL", "BKR", "APA", "FANG", "DVN", "PXDIX", "MUR", "CTRA", "SM",
 
-    # Industry
+    # Cyclic and non-cyclic consumation
+    "WMT", "COST", "HD", "TGT", "LOW", "NKE", "PG", "KO", "PEP", "MDLZ",
+    "PM", "CL", "EL", "KHC", "UL", "K", "GIS", "CPB", "TSN", "HSY",
+
+    # Retail and e-commerce
+    "AMZN", "EBAY", "SHOP", "ETSY", "W", "MELI", "BBY", "DG", "ROST", "TJX",
+    "BURL", "ANF", "URBN", "JWN", "KSS", "LULU", "RL", "CHWY", "DLTR",
+
+    # Health and pharm
+    "JNJ", "PFE", "MRK", "LLY", "ABT", "BMY", "TMO", "CVS", "UNH", "ZBH",
+    "MDT", "CI", "HUM", "REGN", "VRTX", "GILD", "BIIB", "MRNA", "DHR", "ISRG",
+
+    # Biotech / Pharma growth
+    "NVAX", "SNY", "AZN", "NTLA", "CRSP", "EXEL", "BNTX", "ALNY", "INCY", "VIR",
+
+    # Industry and aeroespatial
     "GE", "HON", "MMM", "CAT", "DE", "BA", "LMT", "NOC", "RTX", "GD",
+    "ETN", "EMR", "PH", "ROK", "IR", "PCAR", "FAST", "XYL", "TDG", "FLS",
 
-    # Immobiliary and Infra-Structure
-    "PLD", "AMT", "CCI", "SPG", "O", "EQIX", "PSA", "WELL", "VTR", "DLR",
+    # Transportation e aviation
+    "UPS", "FDX", "DAL", "UAL", "AAL", "LUV", "CHRW", "JBHT", "R", "EXPD",
 
-    # Technology and Software
-    "CRM", "ORCL", "IBM", "ADBE", "CSCO", "AMD", "QCOM", "TXN", "AVGO", "MU",
+    # Real estate / REITs
+    "O", "SPG", "PLD", "AMT", "CCI", "EQIX", "DLR", "PSA", "WELL", "VTR",
+    "ARE", "AVB", "MAA", "EQR", "ESS", "UDR", "INVH", "HST", "CPT",
 
     # Telecom
-    "VZ", "T", "TMUS", "CHTR",
+    "VZ", "T", "TMUS", "CHTR", "CMCSA", "LUMN", "SIRI", "FOXA", "FWONA",
 
-    # Relevant ETFs
+    # Entertainment / Media
+    "DIS", "NFLX", "ROKU", "WBD", "PARA", "SPOT", "LYV", "SONY", "MTCH",
+
+    # Crypto and fintechs
+    "COIN", "PYPL", "SOFI", "HOOD", "RIOT", "MARA", "HUT", "GBTC", "BITO",
+
+    # Travel and tourism
+    "ABNB", "BKNG", "EXPE", "RCL", "NCLH", "CCL", "HLT", "MAR", "H", "WH",
+
+    # Automotive
+    "F", "GM", "TSLA", "RIVN", "LCID", "NKLAQ", "STLA", "HMC", "TM",
+
+    # Alternative transportation and apps
+    "UBER", "LYFT", "DASH", "GRAB", "BMBL", "RBLX", "U", "TCEHY", "SE", "PINS",
+
+    # Cyber-security e software B2B
+    "PANW", "CRWD", "ZS", "NET", "DDOG", "SNOW", "OKTA", "MDB", "DOCU",
+
+    # Meme stocks / retail buzz
+    "GME", "AMC", "BB", "PLTR", "SPCE", "CLSK", "NIO",
+
+    # ETFs populars
     "SPY", "QQQ", "DIA", "IWM", "VOO", "VTI", "ARKK", "XLK", "XLF", "XLE",
-
-    # Cripto and fintechs
-    "COIN", "SQ", "PYPL", "SOFI", "RIOT", "MARA", "HUT", "HOOD",
-
-    # E-commerce and digital
-    "EBAY", "SHOP", "ETSY", "W", "MELI",
-
-    # Aviation e travel
-    "UAL", "DAL", "AAL", "LUV", "CCL", "NCLH", "RCL", "ABNB", "BKNG", "EXPE",
-
-    # Other popular
-    "F", "GM", "UBER", "LYFT", "DIS", "ROKU", "DOCU", "BIDU", "BABA", "JD",
-
-    # Pharma e biotech
-    "REGN", "VRTX", "BIIB", "GILD", "MRNA", "AZN", "SNY", "NTLA", "CRSP", "EXEL",
-
-    # Insurances and alternative finances
-    "AIG", "PRU", "TRV", "ALL", "MET", "CB", "BRK.B",
-
-    # Extra: trending companies / memes
-    "GME", "AMC", "BBBY", "PLTR", "RIVN", "LCID", "NKLA", "BB", "NIO", "XPEV",
-
-    # Fashion and retail
-    "TJX", "KSS", "JWN", "GPS", "ANF", "URBN", "LULU", "ROST", "BURL", "RL",
-
-    # Extra: REITs e immobiliary
-    "AVB", "MAA", "EQR", "ESS", "INVH", "AIRC", "CPT", "UDR", "ARE", "HST",
-
-    # Extra: food and beverage
-    "K", "GIS", "MDLZ", "HRL", "SJM", "TSN", "CPB", "HSY", "KDP", "MNST"
+    "XLV", "XLY", "XLI", "XLB", "XLU", "XLC", "XBI", "VTV", "VUG", "IJR"
 ]
