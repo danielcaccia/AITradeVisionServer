@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
-from app.model.sentiment_analyzer import SentimentAnalyzer
-from app.finance.stock_quote import StockQuote
+from model.sentiment_analyzer import SentimentAnalyzer
+from finance.stock_quote import StockQuote
+from finance.market_snapshot import market_cache, start_market_snapshot_scheduler
 
 app = Flask(__name__)
 analyzer = SentimentAnalyzer()
@@ -70,7 +71,23 @@ def get_index_quote():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
+
+# Market Snapshot
+@app.route("/market-movers", methods=["GET"])
+def get_movers():
+    return jsonify({
+        "gainers": market_cache["gainers"],
+        "losers": market_cache["losers"]
+    })
+
+@app.route("/market-trending", methods=["GET"])
+def get_trending():
+    return jsonify({
+        "trending": market_cache["trending"]
+    })
+
 
 if __name__ == "__main__":
+    start_market_snapshot_scheduler()
     app.run(host="0.0.0.0", port=5001, debug=True)
