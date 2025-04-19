@@ -90,4 +90,4 @@ def get_trending():
 
 if __name__ == "__main__":
     start_market_snapshot_scheduler()
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=False)

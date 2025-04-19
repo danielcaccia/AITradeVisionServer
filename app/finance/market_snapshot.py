@@ -1,5 +1,4 @@
 import yfinance as yf
-import threading
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from finance.tickers_list import TICKERS
@@ -18,7 +17,6 @@ def update_market_data():
     
     for symbol in TICKERS:
         print(f"Fetching symbol: {symbol}")
-        print("--------------------------------------------")
 
         try:
             # Fetch data
