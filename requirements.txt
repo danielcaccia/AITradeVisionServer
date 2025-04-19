@@ -2,3 +2,4 @@ flask
 torch
 transformers
 yfinance
+python-dotenv
