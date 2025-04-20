@@ -37,7 +37,7 @@ class NewsFetcher:
             article["sentiment"] = self.analyzer.analyze(content)
         return articles
     
-    def fetch_top_combined_news(self, query="stock OR finance OR investing", top_n=5):
+    def fetch_top_combined_news(self, query, top_n=5):
         recent_news = self.fetch_news(query, "publishedAt")
         popular_news = self.fetch_news(query, "popularity")
         relevant_news = self.fetch_news(query, "relevancy")
