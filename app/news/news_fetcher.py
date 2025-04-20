@@ -1,5 +1,6 @@
 import requests
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -8,8 +9,9 @@ NEWS_API_KEY = os.getenv("NEWS_API_ORG_API_KEY")
 NEWS_BASE_URL = "https://newsapi.org/v2/everything"
 
 class NewsFetcher:
-    def __init__(self):
+    def __init__(self, analyzer):
         self.session = requests.Session()
+        self.analyzer = analyzer
 
     def fetch_news(self, query, sort_by="publishedAt", page_size=20):
         params = {
@@ -21,12 +23,20 @@ class NewsFetcher:
         }
 
         response = self.session.get(NEWS_BASE_URL, params=params)
+
         if response.status_code != 200:
             print(f"NewsAPI error: {response.status_code} - {response.text}")
             return []
 
-        return response.json().get("articles", [])
+        articles = response.json().get("articles", [])
+        return self._add_sentiment(articles)
 
+    def _add_sentiment(self, articles):
+        for article in articles:
+            content = (article.get("title") or "") + " " + (article.get("description") or "")
+            article["sentiment"] = self.analyzer.analyze(content)
+        return articles
+    
     def fetch_top_combined_news(self, query="stock OR finance OR investing", top_n=5):
         recent_news = self.fetch_news(query, "publishedAt")
         popular_news = self.fetch_news(query, "popularity")
@@ -65,4 +75,24 @@ class NewsFetcher:
 
     def fetch_news_for_symbol(self, symbol, top_n=5):
         query = f'"{symbol}" stock'
-        return self.fetch_top_combined_news(query=query, top_n=top_n)
+        articles = self.fetch_top_combined_news(query=query, top_n=top_n)
+        avg_sentiment = self._calculate_average_sentiment(articles)
+
+        return {
+            "articles": articles,
+            "average_sentiment": avg_sentiment
+        }
+
+    def _calculate_average_sentiment(self, articles):
+        score = {"positive": 0, "neutral": 0, "negative": 0}
+        total = len(articles)
+
+        for article in articles:
+            sentiment = article.get("sentiment")
+            if sentiment in score:
+                score[sentiment] += 1
+
+        if total == 0:
+            return score
+
+        return {k: round(v / total, 2) for k, v in score.items()}

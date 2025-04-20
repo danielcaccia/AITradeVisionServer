@@ -9,12 +9,6 @@ analyzer = SentimentAnalyzer()
 stock_quote = StockQuote()
 news_fetcher = NewsFetcher(analyzer)
 
-
-@app.route("/", methods=["GET"])
-def home():
-    return "FinBERT Sentiment Analysis API is running!"
-
-
 # SENTIMENT ANALYZER
 @app.route("/analyze", methods=["POST"])
 def analyze_sentiment():
@@ -110,9 +104,9 @@ def stock_news():
         if not symbol:
             return jsonify({"error": "Stock symbol is required."}), 400
 
-        news = NewsFetcher().fetch_news_for_symbol(symbol)
-        
-        return jsonify({"articles": news})
+        result = NewsFetcher().fetch_news_for_symbol(symbol)
+
+        return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
