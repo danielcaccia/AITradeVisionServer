@@ -1,14 +1,18 @@
 import traceback
 
 from flask import Flask, request, jsonify
+
 from ai.sentiment_analyzer import SentimentAnalyzer
 from finance.stock_quote import StockQuote
-from finance.market_snapshot import market_cache, start_market_snapshot_scheduler
+from finance.market_snapshot import MarketSnapshot
+from finance.dividend_snapshot import DividendSnapshot
 from news.news_fetcher import NewsFetcher
 
 app = Flask(__name__)
 analyzer = SentimentAnalyzer()
 stock_quote = StockQuote()
+market_snapshot = MarketSnapshot()
+dividend_snapshot = DividendSnapshot()
 news_fetcher = NewsFetcher(analyzer)
 
 # SENTIMENT ANALYZER
@@ -72,20 +76,24 @@ def get_index_quote():
     except Exception as e:
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/upcoming-dividends", methods=["GET"])
+def upcoming_dividends():
+    return jsonify({"upcoming_dividends": dividend_snapshot.upcoming_dividends})
 
 
 # MARKET SNAPSHOT
 @app.route("/market-movers", methods=["GET"])
 def get_movers():
     return jsonify({
-        "gainers": market_cache["gainers"],
-        "losers": market_cache["losers"]
+        "gainers": market_snapshot.market_cache["gainers"],
+        "losers": market_snapshot.market_cache["losers"]
     })
 
 @app.route("/market-trending", methods=["GET"])
 def get_trending():
     return jsonify({
-        "trending": market_cache["trending"]
+        "trending": market_snapshot.market_cache["trending"]
     })
 
 
@@ -119,5 +127,7 @@ def stock_news():
     
 
 if __name__ == "__main__":
-    start_market_snapshot_scheduler()
+    market_snapshot.start_market_snapshot_scheduler()
+    dividend_snapshot.start_dividend_snapshot_scheduler()
+
     app.run(host="0.0.0.0", port=5001, debug=False)
