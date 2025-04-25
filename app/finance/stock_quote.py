@@ -9,7 +9,7 @@ class StockQuote:
             symbol = symbol.upper()
             stock = yf.Ticker(symbol)
             quote = stock.fast_info
-            display_name = stock.info.get("displayName")
+            display_name = stock.info.get("shortName")
 
             if not quote:
                 return {"error": "Invalid stock symbol or no data available."}

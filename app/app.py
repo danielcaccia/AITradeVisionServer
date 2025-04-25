@@ -93,7 +93,7 @@ def get_trending():
 @app.route("/latest-news", methods=["GET"])
 def latest_news():
     try:
-        query = request.args.get("q", "stock OR finance OR investing")
+        query = request.args.get("q", "stock OR finance OR investing OR financial")
         news = news_fetcher.fetch_top_combined_news(query=query)
 
         return jsonify({"articles": news})

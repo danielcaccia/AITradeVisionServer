@@ -2,6 +2,7 @@ import requests
 import os
 
 from dotenv import load_dotenv
+from news.approved_sources import APPROVED_SOURCES
 
 load_dotenv()
 
@@ -13,13 +14,14 @@ class NewsFetcher:
         self.session = requests.Session()
         self.analyzer = analyzer
 
-    def fetch_news(self, query, sort_by="publishedAt", page_size=20):
+    def fetch_news(self, query, sort_by="publishedAt", page_size=50):
         params = {
             "q": query,
             "language": "en",
             "sortBy": sort_by,
             "pageSize": page_size,
-            "apiKey": NEWS_API_KEY
+            "apiKey": NEWS_API_KEY,
+            "sources": ",".join(APPROVED_SOURCES)
         }
 
         response = self.session.get(NEWS_BASE_URL, params=params)
