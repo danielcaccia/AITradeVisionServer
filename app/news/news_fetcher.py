@@ -2,7 +2,8 @@ import requests
 import os
 
 from dotenv import load_dotenv
-from news.approved_sources import APPROVED_SOURCES
+
+from .approved_sources import APPROVED_SOURCES
 
 load_dotenv()
 

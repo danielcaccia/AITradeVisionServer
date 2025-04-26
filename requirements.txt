@@ -3,3 +3,4 @@ torch
 transformers
 yfinance
 python-dotenv
+peewee

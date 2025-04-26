@@ -1,18 +1,26 @@
 import traceback
 
 from flask import Flask, request, jsonify
+from apscheduler.schedulers.background import BackgroundScheduler
+
+from finance.persistence.database import db
+from finance.persistence.models import Dividend as div
+from finance.persistence.models import MarketMovers as mm
 
 from ai.sentiment_analyzer import SentimentAnalyzer
+from finance.models.dividend_snapshot import DividendSnapshot
+from finance.models.market_snapshot import MarketSnapshot
 from finance.stock_quote import StockQuote
-from finance.market_snapshot import MarketSnapshot
-from finance.dividend_snapshot import DividendSnapshot
 from news.news_fetcher import NewsFetcher
+
+db.connect()
+db.create_tables([div, mm])
 
 app = Flask(__name__)
 analyzer = SentimentAnalyzer()
-stock_quote = StockQuote()
-market_snapshot = MarketSnapshot()
 dividend_snapshot = DividendSnapshot()
+market_snapshot = MarketSnapshot()
+stock_quote = StockQuote()
 news_fetcher = NewsFetcher(analyzer)
 
 # SENTIMENT ANALYZER
@@ -79,21 +87,59 @@ def get_index_quote():
     
 @app.route("/upcoming-dividends", methods=["GET"])
 def upcoming_dividends():
-    return jsonify({"upcoming_dividends": dividend_snapshot.upcoming_dividends})
+    dividends = div.select().order_by(div.ex_dividend_date.asc())
+    
+    data = [{
+        "symbol": d.symbol,
+        "name": d.name,
+        "ex_dividend_date": str(d.ex_dividend_date),
+        "dividend_per_share": d.dividend_per_share
+    } for d in dividends]
+
+    return jsonify({"upcoming_dividends": data})
 
 
 # MARKET SNAPSHOT
 @app.route("/market-movers", methods=["GET"])
 def get_movers():
+    gainers = mm.select().where(mm.snapshot_type == "gainer").order_by(mm.variation.desc())
+    losers = mm.select().where(mm.snapshot_type == "loser").order_by(mm.variation.asc())
+
     return jsonify({
-        "gainers": market_snapshot.market_cache["gainers"],
-        "losers": market_snapshot.market_cache["losers"]
+        "gainers": [{
+            "symbol": g.symbol,
+            "name": g.name,
+            "price": g.price,
+            "variation": g.variation,
+            "volume_spike": g.volume_spike,
+            "current_volume": g.current_volume,
+            "avg_volume": g.avg_volume
+        } for g in gainers],
+        "losers": [{
+            "symbol": l.symbol,
+            "name": l.name,
+            "price": l.price,
+            "variation": l.variation,
+            "volume_spike": l.volume_spike,
+            "current_volume": l.current_volume,
+            "avg_volume": l.avg_volume
+        } for l in losers]
     })
 
 @app.route("/market-trending", methods=["GET"])
 def get_trending():
+    trending = mm.select().where(mm.snapshot_type == "trending").order_by(mm.volume_spike.desc())
+    
     return jsonify({
-        "trending": market_snapshot.market_cache["trending"]
+        "trending": [{
+            "symbol": t.symbol,
+            "name": t.name,
+            "price": t.price,
+            "variation": t.variation,
+            "volume_spike": t.volume_spike,
+            "current_volume": t.current_volume,
+            "avg_volume": t.avg_volume
+        } for t in trending]
     })
 
 
@@ -127,7 +173,12 @@ def stock_news():
     
 
 if __name__ == "__main__":
-    market_snapshot.start_market_snapshot_scheduler()
-    dividend_snapshot.start_dividend_snapshot_scheduler()
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(dividend_snapshot.update_upcoming_dividends, "interval", days=1)
+    scheduler.add_job(market_snapshot.update_market_data, "interval", hours=1)
+    scheduler.start()
+
+    # dividend_snapshot.update_upcoming_dividends()
+    market_snapshot.update_market_data()
 
     app.run(host="0.0.0.0", port=5001, debug=False)

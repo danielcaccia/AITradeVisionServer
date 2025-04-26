@@ -1,16 +1,14 @@
 import traceback
 import yfinance as yf
 
-from apscheduler.schedulers.background import BackgroundScheduler
-from finance.tickers_list import TICKERS
+from datetime import datetime
+
+from ..persistence.models import MarketMovers
+from ..tickers_list import TICKERS
 
 class MarketSnapshot:
     def __init__(self):
-        self.market_cache = {
-            "gainers": [],
-            "losers": [],
-            "trending": []
-        }
+        pass
 
     def update_market_data(self):
         print("Updating market data...")
@@ -18,7 +16,8 @@ class MarketSnapshot:
 
         data = []
         
-        for symbol in TICKERS:
+        # for symbol in TICKERS:
+        for symbol in ['AAPL', 'VZ']:
             print(f"Fetching symbol: {symbol}")
 
             try:
@@ -71,17 +70,18 @@ class MarketSnapshot:
         sorted_by_variation = sorted(data, key=lambda x: x["variation"], reverse=True)
         sorted_by_volume_spike = sorted(data, key=lambda x: x["volume_spike"], reverse=True)
 
-        # Feed the cache memory with updated data
-        self.market_cache["trending"] = sorted_by_volume_spike[:5]
-        self.market_cache["gainers"] = sorted_by_variation[:5]
-        self.market_cache["losers"] = sorted_by_variation[-5:]
+        now = datetime.now()
+        MarketMovers.delete().execute()
+
+        # Feed the database with updated data
+        for i, record in enumerate(sorted_by_volume_spike[:5]):
+            MarketMovers.create(**record, snapshot_type="trending", created_at=now)
+        
+        for i, record in enumerate(sorted_by_variation[:5]):
+            MarketMovers.create(**record, snapshot_type="gainer", created_at=now)
+        
+        for i, record in enumerate(sorted_by_variation[-5:]):
+            MarketMovers.create(**record, snapshot_type="loser", created_at=now)
 
         print("============================================")
         print("Market data updated.")
-
-    def start_market_snapshot_scheduler(self):
-        scheduler = BackgroundScheduler()
-        scheduler.add_job(self.update_market_data, "interval", hours=1)
-        scheduler.start()
-
-        self.update_market_data()
