@@ -13,6 +13,8 @@ from finance.models.market_snapshot import MarketSnapshot
 from finance.stock_quote import StockQuote
 from news.news_fetcher import NewsFetcher
 
+USE_DEV_ENDPOINT = True
+
 db.connect()
 db.create_tables([div, mm])
 
@@ -178,7 +180,11 @@ if __name__ == "__main__":
     scheduler.add_job(market_snapshot.update_market_data, "interval", hours=1)
     scheduler.start()
 
-    # dividend_snapshot.update_upcoming_dividends()
-    market_snapshot.update_market_data()
+    if USE_DEV_ENDPOINT:
+        dividend_snapshot.update_upcoming_dividendsForDevEnv()
+        # market_snapshot.update_market_data()
+    else:
+        dividend_snapshot.update_upcoming_dividends()
+        market_snapshot.update_market_data()
 
     app.run(host="0.0.0.0", port=5001, debug=False)
