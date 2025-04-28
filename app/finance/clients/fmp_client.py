@@ -8,6 +8,7 @@ load_dotenv()
 FMP_API_KEY = os.getenv("FMP_API_KEY")
 FMP_BASE_URL = "https://financialmodelingprep.com/api/v3"
 FMP_BASE_DEV_URL = "https://financialmodelingprep.com/stable/"
+
 def fmp_get(endpoint, params=None):
     if params is None:
         params = {}

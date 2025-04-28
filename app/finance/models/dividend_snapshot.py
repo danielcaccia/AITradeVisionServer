@@ -1,4 +1,3 @@
-import requests
 import traceback
 
 from datetime import datetime, timedelta
@@ -83,6 +82,7 @@ class DividendSnapshot:
                     declaration_date=None,
                     created_at=datetime.now()
                 )
+
                 print(f"Dividend saved: {symbol} - {ex_dividend_date}")
 
         except Exception as e:

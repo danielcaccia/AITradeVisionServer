@@ -1,26 +1,33 @@
+import os
 import traceback
 
+from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from finance.persistence.database import db
 from finance.persistence.models import Dividend as div
+from finance.persistence.models import Ipo as ipo
 from finance.persistence.models import MarketMovers as mm
 
 from ai.sentiment_analyzer import SentimentAnalyzer
 from finance.models.dividend_snapshot import DividendSnapshot
+from finance.models.ipo_snapshot import IPOSnapshot
 from finance.models.market_snapshot import MarketSnapshot
 from finance.stock_quote import StockQuote
 from news.news_fetcher import NewsFetcher
 
-USE_DEV_ENDPOINT = True
+load_dotenv()
+
+USE_DEV_ENDPOINT = os.getenv("USE_DEV_ENDPOINT")
 
 db.connect()
-db.create_tables([div, mm])
+db.create_tables([div, ipo, mm])
 
 app = Flask(__name__)
 analyzer = SentimentAnalyzer()
 dividend_snapshot = DividendSnapshot()
+ipo_snapshot = IPOSnapshot()
 market_snapshot = MarketSnapshot()
 stock_quote = StockQuote()
 news_fetcher = NewsFetcher(analyzer)
@@ -100,6 +107,20 @@ def upcoming_dividends():
 
     return jsonify({"upcoming_dividends": data})
 
+@app.route("/upcoming-ipos", methods=["GET"])
+def upcoming_ipos():
+    ipos = ipo.select().order_by(ipo.ipo_date.asc())
+    
+    data = [{
+        "symbol": i.symbol,
+        "name": i.name,
+        "exchange": i.exchange,
+        "ipo_date": str(i.ipo_date),
+        "price_range": i.price_range
+    } for i in ipos]
+
+    return jsonify({"upcoming_ipos": data})
+
 
 # MARKET SNAPSHOT
 @app.route("/market-movers", methods=["GET"])
@@ -177,14 +198,17 @@ def stock_news():
 if __name__ == "__main__":
     scheduler = BackgroundScheduler()
     scheduler.add_job(dividend_snapshot.update_upcoming_dividends, "interval", days=1)
+    scheduler.add_job(ipo_snapshot.update_upcoming_ipos, "interval", days=1)
     scheduler.add_job(market_snapshot.update_market_data, "interval", hours=1)
     scheduler.start()
 
     if USE_DEV_ENDPOINT:
         dividend_snapshot.update_upcoming_dividendsForDevEnv()
+        ipo_snapshot.update_upcoming_iposForDevEnv()
         # market_snapshot.update_market_data()
     else:
         dividend_snapshot.update_upcoming_dividends()
+        ipo_snapshot.update_upcoming_ipos()
         market_snapshot.update_market_data()
 
     app.run(host="0.0.0.0", port=5001, debug=False)

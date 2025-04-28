@@ -1,10 +1,11 @@
-from peewee import Model, CharField, DateField, FloatField, IntegerField, TimestampField
+from peewee import Model, CharField, DateField, FloatField, IntegerField, TimestampField, DateTimeField
 
 from .database import db
 
 class BaseModel(Model):
     class Meta:
         database = db
+
 
 class Dividend(BaseModel):
     symbol = CharField()
@@ -15,6 +16,16 @@ class Dividend(BaseModel):
     record_date = DateField(null=True)
     declaration_date = DateField(null=True)
     created_at = TimestampField()
+
+
+class Ipo(BaseModel):
+    symbol = CharField()
+    name = CharField()
+    exchange = CharField()
+    ipo_date = DateField()
+    price_range = FloatField(null=True)
+    created_at = DateTimeField()
+
 
 class MarketMovers(BaseModel):
     symbol = CharField()
