@@ -1,6 +1,18 @@
+# Web framework
 flask
+
+# Machine learning / NLP
 torch
 transformers
+
+# Data sources / APIs
 yfinance
+
+# Environment configuration
 python-dotenv
+
+# Database ORM
 peewee
+
+# Data analysis / Technical indicators
+pandas_ta

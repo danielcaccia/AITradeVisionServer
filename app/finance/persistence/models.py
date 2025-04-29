@@ -27,6 +27,16 @@ class Ipo(BaseModel):
     created_at = DateTimeField()
 
 
+class TechnicalSignal(BaseModel):
+    symbol = CharField()
+    name = CharField(null=True)
+    last_price = FloatField()
+    rsi = FloatField(null=True)
+    macd_cross = CharField(null=True)  # 'bullish', 'bearish', or None
+    signal_summary = CharField()
+    created_at = TimestampField()
+
+
 class MarketMovers(BaseModel):
     symbol = CharField()
     name = CharField()

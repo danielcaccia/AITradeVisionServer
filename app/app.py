@@ -8,11 +8,13 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from finance.persistence.database import db
 from finance.persistence.models import Dividend as div
 from finance.persistence.models import Ipo as ipo
+from finance.persistence.models import TechnicalSignal as ts
 from finance.persistence.models import MarketMovers as mm
 
 from ai.sentiment_analyzer import SentimentAnalyzer
 from finance.models.dividend_snapshot import DividendSnapshot
 from finance.models.ipo_snapshot import IPOSnapshot
+from finance.models.signals_snapshot import SignalSnapshot
 from finance.models.market_snapshot import MarketSnapshot
 from finance.stock_quote import StockQuote
 from news.news_fetcher import NewsFetcher
@@ -22,12 +24,13 @@ load_dotenv()
 USE_DEV_ENDPOINT = os.getenv("USE_DEV_ENDPOINT")
 
 db.connect()
-db.create_tables([div, ipo, mm])
+db.create_tables([div, ipo, ts, mm])
 
 app = Flask(__name__)
 analyzer = SentimentAnalyzer()
 dividend_snapshot = DividendSnapshot()
 ipo_snapshot = IPOSnapshot()
+signals_snapshot = SignalSnapshot()
 market_snapshot = MarketSnapshot()
 stock_quote = StockQuote()
 news_fetcher = NewsFetcher(analyzer)
@@ -121,6 +124,22 @@ def upcoming_ipos():
 
     return jsonify({"upcoming_ipos": data})
 
+@app.route("/technical-signals", methods=["GET"])
+def get_signals():
+    signals = ts.select().order_by(ts.created_at.desc())
+    
+    data = [{
+        "symbol": s.symbol,
+        "name": s.name,
+        "last_price": s.last_price,
+        "rsi": s.rsi,
+        "macd_cross": s.macd_cross,
+        "signal_summary": s.signal_summary,
+        "created_at": s.created_at
+    } for s in signals]
+
+    return jsonify({"technical_signals": data})
+
 
 # MARKET SNAPSHOT
 @app.route("/market-movers", methods=["GET"])
@@ -199,16 +218,19 @@ if __name__ == "__main__":
     scheduler = BackgroundScheduler()
     scheduler.add_job(dividend_snapshot.update_upcoming_dividends, "interval", days=1)
     scheduler.add_job(ipo_snapshot.update_upcoming_ipos, "interval", days=1)
+    scheduler.add_job(signals_snapshot.detect_signals, "interval", hours=3)
     scheduler.add_job(market_snapshot.update_market_data, "interval", hours=1)
     scheduler.start()
 
     if USE_DEV_ENDPOINT:
         dividend_snapshot.update_upcoming_dividendsForDevEnv()
         ipo_snapshot.update_upcoming_iposForDevEnv()
-        # market_snapshot.update_market_data()
+        signals_snapshot.detect_signalsForDevEnv()
+        market_snapshot.update_market_dataForDevEnv()
     else:
         dividend_snapshot.update_upcoming_dividends()
         ipo_snapshot.update_upcoming_ipos()
+        signals_snapshot.detect_signals()
         market_snapshot.update_market_data()
 
     app.run(host="0.0.0.0", port=5001, debug=False)
