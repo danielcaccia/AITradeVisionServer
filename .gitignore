@@ -1,5 +1,12 @@
+# Python Cache
 __pycache__/
 *.pyc
+
+# Environment
 .env
+
+# Machine Learning models
 *.pt
+
+# Database files
 *.db
