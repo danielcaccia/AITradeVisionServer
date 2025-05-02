@@ -246,7 +246,7 @@ if __name__ == "__main__":
         ipo_snapshot.update_upcoming_iposForDevEnv()
         signals_snapshot.detect_signalsForDevEnv()
         market_snapshot.update_market_dataForDevEnv()
-        ai_insights_snapshot.generate_ai_insights_snapshot()
+        ai_insights_snapshot.generate_ai_insights_snapshotForDevEnv()
     else:
         dividend_snapshot.update_upcoming_dividends()
         ipo_snapshot.update_upcoming_ipos()
