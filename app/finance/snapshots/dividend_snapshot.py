@@ -2,9 +2,11 @@ import traceback
 
 from datetime import datetime, timedelta
 
-from ..clients.fmp_client import fmp_get, fmp_get_dev_env
-from ..persistence.models import Dividend
-from ..tickers_list import TICKERS
+from app.persistence.models import Dividend
+
+from app.finance.clients.fmp_client import fmp_get, fmp_get_dev_env
+
+from app.finance.tickers_list import TICKERS
 
 class DividendSnapshot:
     def __init__(self):

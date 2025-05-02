@@ -3,7 +3,7 @@ import os
 
 from dotenv import load_dotenv
 
-from .approved_sources import APPROVED_SOURCES
+from app.news.approved_sources import APPROVED_SOURCES
 
 load_dotenv()
 

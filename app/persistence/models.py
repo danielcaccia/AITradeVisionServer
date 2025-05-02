@@ -1,6 +1,6 @@
 from peewee import Model, CharField, DateField, FloatField, IntegerField, TimestampField, DateTimeField
 
-from .database import db
+from app.persistence.database import db
 
 class BaseModel(Model):
     class Meta:
@@ -36,6 +36,19 @@ class TechnicalSignal(BaseModel):
     signal_summary = CharField()
     created_at = TimestampField()
 
+
+class AiInsight(BaseModel):
+    symbol = CharField()
+    title = CharField()
+    summary = CharField()
+    sentiment_score = FloatField()
+    volume_ratio = FloatField(null=True)
+    relevance_score = FloatField()
+    published_at = DateTimeField(null=True)
+    url = CharField(null=True)
+    source = CharField(null=True)
+    created_at = DateTimeField()
+    
 
 class MarketMovers(BaseModel):
     symbol = CharField()

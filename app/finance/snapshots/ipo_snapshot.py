@@ -2,8 +2,9 @@ import traceback
 
 from datetime import datetime, timedelta
 
-from ..clients.fmp_client import fmp_get, fmp_get_dev_env
-from ..persistence.models import Ipo
+from app.persistence.models import Ipo
+
+from app.finance.clients.fmp_client import fmp_get, fmp_get_dev_env
 
 class IPOSnapshot:
     def __init__(self):

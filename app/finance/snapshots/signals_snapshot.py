@@ -3,8 +3,9 @@ import pandas_ta as ta
 
 from datetime import datetime
 
-from ..persistence.models import TechnicalSignal
-from ..tickers_list import TICKERS
+from app.persistence.models import TechnicalSignal
+
+from app.finance.tickers_list import TICKERS
 
 class SignalSnapshot:
     def __init__(self):

@@ -5,35 +5,39 @@ from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from finance.persistence.database import db
-from finance.persistence.models import Dividend as div
-from finance.persistence.models import Ipo as ipo
-from finance.persistence.models import TechnicalSignal as ts
-from finance.persistence.models import MarketMovers as mm
+# Import Services
+from app.ai.nlp.sentiment_analyzer import SentimentAnalyzer
+from app.news.news_fetcher import NewsFetcher
+from app.finance.services.stock_quote import StockQuote
 
-from ai.sentiment_analyzer import SentimentAnalyzer
-from finance.models.dividend_snapshot import DividendSnapshot
-from finance.models.ipo_snapshot import IPOSnapshot
-from finance.models.signals_snapshot import SignalSnapshot
-from finance.models.market_snapshot import MarketSnapshot
-from finance.stock_quote import StockQuote
-from news.news_fetcher import NewsFetcher
+# Import DB
+from app.persistence.database import db
+from app.persistence.models import Dividend, Ipo, TechnicalSignal, MarketMovers, AiInsight
+
+# Import Snapshots
+from app.ai.llm.ai_insights_snapshot import AiInsightsSnapshot
+from app.finance.snapshots.dividend_snapshot import DividendSnapshot
+from app.finance.snapshots.ipo_snapshot import IPOSnapshot
+from app.finance.snapshots.signals_snapshot import SignalSnapshot
+from app.finance.snapshots.market_snapshot import MarketSnapshot
 
 load_dotenv()
 
 USE_DEV_ENDPOINT = os.getenv("USE_DEV_ENDPOINT")
 
 db.connect()
-db.create_tables([div, ipo, ts, mm])
+db.create_tables([Dividend, Ipo, TechnicalSignal, MarketMovers, AiInsight])
 
 app = Flask(__name__)
 analyzer = SentimentAnalyzer()
+news_fetcher = NewsFetcher(analyzer)
+stock_quote = StockQuote()
+
 dividend_snapshot = DividendSnapshot()
 ipo_snapshot = IPOSnapshot()
 signals_snapshot = SignalSnapshot()
 market_snapshot = MarketSnapshot()
-stock_quote = StockQuote()
-news_fetcher = NewsFetcher(analyzer)
+ai_insights_snapshot = AiInsightsSnapshot()
 
 # SENTIMENT ANALYZER
 @app.route("/analyze", methods=["POST"])
@@ -51,6 +55,20 @@ def analyze_sentiment():
     except Exception as e:
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
+
+
+# AI PICKS
+@app.route("/api/ai-picks", methods=["GET"])
+def get_ai_picks():
+    symbol = request.args.get("symbol")
+
+    query = AiInsight.select().order_by(AiInsight.created_at.desc())
+
+    if symbol:
+        query = query.where(AiInsight.symbol == symbol)
+
+    insights = query.limit(10)
+    return jsonify([i.__data__ for i in insights])
 
 
 # YFINANCE
@@ -99,7 +117,7 @@ def get_index_quote():
     
 @app.route("/upcoming-dividends", methods=["GET"])
 def upcoming_dividends():
-    dividends = div.select().order_by(div.ex_dividend_date.asc())
+    dividends = Dividend.select().order_by(Dividend.ex_dividend_date.asc())
     
     data = [{
         "symbol": d.symbol,
@@ -112,7 +130,7 @@ def upcoming_dividends():
 
 @app.route("/upcoming-ipos", methods=["GET"])
 def upcoming_ipos():
-    ipos = ipo.select().order_by(ipo.ipo_date.asc())
+    ipos = Ipo.select().order_by(Ipo.ipo_date.asc())
     
     data = [{
         "symbol": i.symbol,
@@ -126,7 +144,7 @@ def upcoming_ipos():
 
 @app.route("/technical-signals", methods=["GET"])
 def get_signals():
-    signals = ts.select().order_by(ts.created_at.desc())
+    signals = TechnicalSignal.select().order_by(TechnicalSignal.created_at.desc())
     
     data = [{
         "symbol": s.symbol,
@@ -144,8 +162,8 @@ def get_signals():
 # MARKET SNAPSHOT
 @app.route("/market-movers", methods=["GET"])
 def get_movers():
-    gainers = mm.select().where(mm.snapshot_type == "gainer").order_by(mm.variation.desc())
-    losers = mm.select().where(mm.snapshot_type == "loser").order_by(mm.variation.asc())
+    gainers = MarketMovers.select().where(MarketMovers.snapshot_type == "gainer").order_by(MarketMovers.variation.desc())
+    losers = MarketMovers.select().where(MarketMovers.snapshot_type == "loser").order_by(MarketMovers.variation.asc())
 
     return jsonify({
         "gainers": [{
@@ -170,7 +188,7 @@ def get_movers():
 
 @app.route("/market-trending", methods=["GET"])
 def get_trending():
-    trending = mm.select().where(mm.snapshot_type == "trending").order_by(mm.volume_spike.desc())
+    trending = MarketMovers.select().where(MarketMovers.snapshot_type == "trending").order_by(MarketMovers.volume_spike.desc())
     
     return jsonify({
         "trending": [{
@@ -220,6 +238,7 @@ if __name__ == "__main__":
     scheduler.add_job(ipo_snapshot.update_upcoming_ipos, "interval", days=1)
     scheduler.add_job(signals_snapshot.detect_signals, "interval", hours=3)
     scheduler.add_job(market_snapshot.update_market_data, "interval", hours=1)
+    scheduler.add_job(ai_insights_snapshot.generate_ai_insights_snapshot, "interval", hours=2)
     scheduler.start()
 
     if USE_DEV_ENDPOINT:
@@ -227,10 +246,12 @@ if __name__ == "__main__":
         ipo_snapshot.update_upcoming_iposForDevEnv()
         signals_snapshot.detect_signalsForDevEnv()
         market_snapshot.update_market_dataForDevEnv()
+        ai_insights_snapshot.generate_ai_insights_snapshot()
     else:
         dividend_snapshot.update_upcoming_dividends()
         ipo_snapshot.update_upcoming_ipos()
         signals_snapshot.detect_signals()
         market_snapshot.update_market_data()
+        ai_insights_snapshot.generate_ai_insights_snapshot()
 
     app.run(host="0.0.0.0", port=5001, debug=False)

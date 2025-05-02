@@ -3,8 +3,9 @@ import yfinance as yf
 
 from datetime import datetime
 
-from ..persistence.models import MarketMovers
-from ..tickers_list import TICKERS
+from app.persistence.models import MarketMovers
+
+from app.finance.tickers_list import TICKERS
 
 class MarketSnapshot:
     def __init__(self):

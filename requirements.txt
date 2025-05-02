@@ -4,6 +4,7 @@ flask
 # Machine learning / NLP
 torch
 transformers
+openai
 
 # Data sources / APIs
 yfinance
