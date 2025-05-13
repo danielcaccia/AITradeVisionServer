@@ -68,7 +68,20 @@ def get_ai_picks():
         query = query.where(AiInsight.symbol == symbol)
 
     insights = query.limit(10)
-    return jsonify([i.__data__ for i in insights])
+
+    data = [{
+        "symbol": i.symbol,
+        "title": i.title,
+        "summary": i.summary,
+        "sentiment_score": i.sentiment_score,
+        "volume_ratio": i.volume_ratio,
+        "relevance_score": i.relevance_score,
+        "published_at": str(i.published_at),
+        "url": i.url,
+        "source": i.source
+    } for i in insights]
+
+    return jsonify({"insights": data})
 
 
 # YFINANCE
